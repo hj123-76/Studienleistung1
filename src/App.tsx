@@ -3,28 +3,17 @@ import axios from "axios";
 
 const App: React.FC = () => {
   const [countries, setCountries] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const fetchCountries = async () => {
-      try {
-        const response = await axios.get("https://restcountries.com/v3.1/all");
-        setCountries(response.data);
-        setLoading(false);
-      } catch (err) {
-        setError("Fehler beim Abrufen der Daten.");
-        setLoading(false);
-      }
-    };
-
-    fetchCountries();
+    axios
+      .get("https://restcountries.com/v3.1/all")
+      .then((response) => setCountries(response.data))
+      .catch(() => setError("Fehler beim Abrufen der Daten."))
+      .finally(() => setLoading(false));
   }, []);
-
-  const filteredCountries = countries.filter((country) =>
-    country.name.common.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   if (loading) return <p>Lade Daten...</p>;
   if (error) return <p>{error}</p>;
@@ -37,15 +26,19 @@ const App: React.FC = () => {
         placeholder="Suche nach einem Land..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        style={{ marginBottom: "20px", padding: "10px", width: "100%" }}
+        className="search-input"
       />
       <ul>
-        {filteredCountries.map((country) => (
-          <li key={country.cca3}>
-            <strong>{country.name.common}</strong> - Hauptstadt:{" "}
-            {country.capital ? country.capital[0] : "Keine Hauptstadt"}
-          </li>
-        ))}
+        {countries
+          .filter((country) =>
+            country.name.common.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+          .map((country) => (
+            <li key={country.cca3}>
+              <strong>{country.name.common}</strong> - Hauptstadt:{" "}
+              {country.capital?.[0] || "Keine Hauptstadt"}
+            </li>
+          ))}
       </ul>
     </div>
   );
